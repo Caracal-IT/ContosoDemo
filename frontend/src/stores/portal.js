@@ -51,7 +51,15 @@ export const usePortalStore = defineStore('portal', () => {
 
   async function deletePlayer(id) {
     const res = await fetch(`/api/players/${id}`, { method: 'DELETE' })
-    return await res.json()
+    if (res.status === 204) {
+      // No Content, return empty object
+      return {}
+    }
+    try {
+      return await res.json()
+    } catch {
+      return {}
+    }
   }
 
   return {
@@ -61,7 +69,6 @@ export const usePortalStore = defineStore('portal', () => {
     players,
     player,
     fetchPlayers,
-    fetchPlayer,
     createPlayer,
     updatePlayer,
     deletePlayer

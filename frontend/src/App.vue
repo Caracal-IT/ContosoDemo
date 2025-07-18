@@ -19,41 +19,59 @@
           </q-menu>
         </q-btn>
       </q-toolbar>
+      <q-tabs
+        v-model="tab"
+        class="bg-primary text-white"
+        align="left"
+        dense
+        indicator-color="yellow"
+      >
+        <q-tab name="players" icon="people" :label="$t('players')" />
+        <q-tab name="ping" icon="wifi_tethering" :label="$t('pingTab')" />
+      </q-tabs>
     </q-header>
 
     <q-page-container>
-      <q-page class="q-pa-md flex flex-center bg-grey-2">
-        <q-card class="my-card">
-          <q-card-section class="bg-primary text-white">
-            <div class="text-h5 text-center">{{ $t('welcome') }}</div>
-          </q-card-section>
-          <q-card-section>
-            <div class="q-mb-md text-center">
-              <q-btn color="primary" @click="portal.pingBackend" :label="$t('ping')" unelevated rounded />
-              <q-btn color="secondary" @click="portal.clearResult" :label="$t('clear')" unelevated rounded class="q-ml-sm" />
-            </div>
-            <div class="q-mt-md">
-              <q-banner v-if="portal.pingResult" dense class="bg-green-2 text-primary text-center">
-                {{ portal.pingResult }}
-              </q-banner>
-            </div>
-          </q-card-section>
-        </q-card>
-      </q-page>
-      <q-page class="q-pa-md">
-        <Players />
-      </q-page>
+      <q-tab-panels v-model="tab" animated>
+        <q-tab-panel name="players">
+          <q-page class="q-pa-md" style="min-height: 300px;">
+            <Players />
+          </q-page>
+        </q-tab-panel>
+        <q-tab-panel name="ping">
+          <q-page class="q-pa-md flex flex-center bg-grey-2" style="min-height: 300px;">
+            <q-card class="my-card">
+              <q-card-section class="bg-primary text-white">
+                <div class="text-h5 text-center">{{ $t('welcome') }}</div>
+              </q-card-section>
+              <q-card-section>
+                <div class="q-mb-md text-center">
+                  <q-btn color="primary" @click="portal.pingBackend" :label="$t('ping')" unelevated rounded />
+                  <q-btn color="secondary" @click="portal.clearResult" :label="$t('clear')" unelevated rounded class="q-ml-sm" />
+                </div>
+                <div class="q-mt-md">
+                  <q-banner v-if="portal.pingResult" dense class="bg-green-2 text-primary text-center">
+                    {{ portal.pingResult }}
+                  </q-banner>
+                </div>
+              </q-card-section>
+            </q-card>
+          </q-page>
+        </q-tab-panel>
+      </q-tab-panels>
     </q-page-container>
   </q-layout>
 </template>
 
 <script setup>
+import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { usePortalStore } from './stores/portal'
 import Players from './components/Players.vue'
 
 const portal = usePortalStore()
 const { locale } = useI18n()
+const tab = ref('players')
 
 function setLang(lang) {
   locale.value = lang

@@ -15,13 +15,37 @@ const messages = {
     title: 'Contoso Quasar App',
     welcome: 'Welcome to Contoso!',
     ping: 'Ping Backend',
-    clear: 'Clear'
+    clear: 'Clear',
+    players: 'Players',
+    addPlayer: 'Add Player',
+    editPlayer: 'Edit Player',
+    name: 'Name',
+    surname: 'Surname',
+    balance: 'Balance',
+    cancel: 'Cancel',
+    save: 'Save',
+    pingTab: 'Ping',
+    id: 'ID',
+    actions: 'Actions',
+    recordsPerPage: 'Records per page'
   },
   fr: {
     title: 'Application Quasar Contoso',
     welcome: 'Bienvenue chez Contoso !',
     ping: 'Tester le backend',
-    clear: 'Effacer'
+    clear: 'Effacer',
+    players: 'Joueurs',
+    addPlayer: 'Ajouter un joueur',
+    editPlayer: 'Modifier le joueur',
+    name: 'Prénom',
+    surname: 'Nom de famille',
+    balance: 'Solde',
+    cancel: 'Annuler',
+    save: 'Enregistrer',
+    pingTab: 'Ping',
+    id: 'ID',
+    actions: 'Actions',
+    recordsPerPage: 'Enregistrements par page'
   }
 }
 
