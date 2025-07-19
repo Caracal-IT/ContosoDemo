@@ -1,7 +1,8 @@
-﻿package main
+package main
 
 import (
 	"contoso/dbsetup"
+	"contoso/elasticlog"
 	"contoso/routes"
 	"github.com/gin-gonic/gin"
 	"net/http"
@@ -12,10 +13,16 @@ func main() {
 	// Ensure DB is initialized on start
 	dbsetup.GetMongoCollection()
 
+	// Semantic log to Elasticsearch on startup
+	elasticlog.LogToElastic("info", "Contoso backend started", map[string]interface{}{
+		"event": "startup",
+	}, "contoso", "", "", // index, username, password: use env/default
+	)
+
 	router := gin.Default()
 
 	// API routes
-	routes.RegisterRoutes(router) // Uncommented to register API routes
+	routes.RegisterRoutes(router)
 
 	// Serve static files for frontend
 	publicDir := "./public"
@@ -31,5 +38,9 @@ func main() {
 		c.File(filepath.Join(publicDir, "index.html"))
 	})
 
-	router.Run(":8080")
+	err := router.Run(":8080")
+
+	if err != nil {
+		return
+	}
 }
