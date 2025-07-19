@@ -24,8 +24,6 @@ services:
       MONGO_URI: mongodb://root:example@mongodb:27017
     ports:
       - "8080:8080"
-    volumes:
-      - .:/app
 
 volumes:
   mongo_data:
