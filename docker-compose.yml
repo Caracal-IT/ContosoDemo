@@ -20,10 +20,9 @@ services:
     container_name: contoso-backend
     depends_on:
       - mongodb
-      - contoso-elasticsearch
     environment:
       MONGO_URI: mongodb://root:example@mongodb:27017/contoso
-      ELASTICSEARCH_URL: http://contoso-elasticsearch:9200
+      ELASTICSEARCH_URL: http://host.docker.internal:9200
       ELASTICSEARCH_USERNAME: elastic
       ELASTICSEARCH_PASSWORD: changeme
       # Add any backend secrets here as needed
