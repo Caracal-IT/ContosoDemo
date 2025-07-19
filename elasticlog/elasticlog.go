@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"log"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/elastic/go-elasticsearch/v9"
@@ -13,6 +14,7 @@ import (
 
 // LogToElastic logs a semantic event to Elasticsearch.
 // If username, password, or index are empty, falls back to environment variables or "contoso-logs" for index.
+// If index ends with "-", appends the current date (YYYY-MM-DD) for rolling indices.
 func LogToElastic(level, msg string, fields map[string]interface{}, index, username, password string) {
 	esURL := os.Getenv("ELASTICSEARCH_URL")
 	if username == "" {
@@ -22,7 +24,11 @@ func LogToElastic(level, msg string, fields map[string]interface{}, index, usern
 		password = os.Getenv("ELASTICSEARCH_PASSWORD")
 	}
 	if index == "" {
-		index = "contoso-logs"
+		index = "contoso-"
+	}
+	// Rolling index: if index ends with "-", append date
+	if strings.HasSuffix(index, "-") {
+		index = index + time.Now().Format("2006-01-02")
 	}
 	if esURL == "" || username == "" || password == "" {
 		log.Println("Elasticsearch credentials not set, skipping log")
