@@ -61,3 +61,6 @@ Or add a Makefile or npm script to automate this process.
 - `models/` - Data models
 - `frontend/` - Vue.js web frontend (Quasar, Vite)
 - `public/` - Built frontend files (served by Go)
+
+## ELK Stack
+git clone https://github.com/deviantony/docker-elk.git
