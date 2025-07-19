@@ -19,7 +19,7 @@
     depends_on:
       - mongodb
     environment:
-      MONGO_URI: mongodb://root:example@mongodb:27017/contoso
+      MONGO_URI: mongodb://root:example@mongodb:27017
       ELASTICSEARCH_URL: http://host.docker.internal:9200
       ELASTICSEARCH_USERNAME: elastic
       ELASTICSEARCH_PASSWORD: changeme
