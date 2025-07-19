@@ -53,7 +53,7 @@ func (l *Logger) logInternal(level LogLevel, msg string, fields map[string]inter
 	if len(fields) > 0 {
 		consoleMsg += " | " + fmt.Sprint(fields)
 	}
-	fmt.Fprintln(os.Stdout, consoleMsg)
+	_, _ = fmt.Fprintln(os.Stdout, consoleMsg)
 
 	// Elastic log
 	LogToElastic(level.String(), msg, fields, l.Index, l.User, l.Pass)
