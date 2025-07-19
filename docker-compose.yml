@@ -10,6 +10,7 @@ services:
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: example
+      MONGO_INITDB_DATABASE: contoso
     volumes:
       - mongo_data:/data/db
 
@@ -21,10 +22,7 @@ services:
     depends_on:
       - mongodb
     environment:
-      MONGO_URI: mongodb://root:example@mongodb:27017
+      MONGO_URI: mongodb://root:example@mongodb:27017/contoso
+      # Add any backend secrets here as needed
     ports:
       - "8080:8080"
-
-volumes:
-  mongo_data:
-
