@@ -35,6 +35,18 @@ func (w *elasticInfoWriter) Write(p []byte) (n int, err error) {
 	return n, err
 }
 
+func startBackgroundService(logger *elasticlog.Logger) {
+	go func() {
+		for {
+			logger.Info("Background service heartbeat", map[string]interface{}{
+				"event": "heartbeat",
+				"time":  time.Now().Format(time.RFC3339),
+			})
+			time.Sleep(1 * time.Minute)
+		}
+	}()
+}
+
 func main() {
 	// Ensure DB is initialized on start
 	dbsetup.GetMongoCollection()
@@ -47,6 +59,9 @@ func main() {
 		os.Getenv("ELASTICSEARCH_USERNAME"),
 		os.Getenv("ELASTICSEARCH_PASSWORD"),
 	)
+
+	// Start background service
+	startBackgroundService(logger)
 
 	logger.Info("Contoso backend started", map[string]interface{}{
 		"event": "startup",
