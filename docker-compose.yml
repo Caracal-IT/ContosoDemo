@@ -1,4 +1,5 @@
-﻿services:
+﻿version: "3.8"
+services:
   mongodb:
     image: mongo:6
     container_name: contoso-mongodb
@@ -18,14 +19,53 @@
     container_name: contoso-backend
     depends_on:
       - mongodb
+      - postgres
+      - contoso-elasticsearch
     environment:
-      MONGO_URI: mongodb://root:example@mongodb:27017
-      ELASTICSEARCH_URL: http://host.docker.internal:9200
+      DB_TYPE: ${DB_TYPE:-mongo}
+      MONGO_URI: mongodb://root:example@mongo:27017
+      POSTGRES_URL: postgres://postgres:example@postgres:5432/contoso?sslmode=disable
+      ELASTICSEARCH_URL: http://contoso-elasticsearch:9200
       ELASTICSEARCH_USERNAME: elastic
       ELASTICSEARCH_PASSWORD: changeme
       # Add any backend secrets here as needed
     ports:
       - "8080:8080"
+
+  postgres:
+    image: postgres:15
+    restart: always
+    environment:
+      POSTGRES_DB: contoso
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: example
+    ports:
+      - "5432:5432"
+
+  contoso-elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.13.4
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=true
+      - ELASTIC_PASSWORD=changeme
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+    ports:
+      - "9200:9200"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.13.4
+    ports:
+      - "5601:5601"
+    environment:
+      - ELASTICSEARCH_HOSTS=http://contoso-elasticsearch:9200
+      - ELASTICSEARCH_USERNAME=elastic
+      - ELASTICSEARCH_PASSWORD=changeme
+    depends_on:
+      - contoso-elasticsearch
 
 volumes:
   mongo_data:

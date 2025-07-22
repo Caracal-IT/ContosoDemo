@@ -1,8 +1,8 @@
-﻿package models
+package models
 
 type Player struct {
-	ID      string  `json:"id" bson:"_id,omitempty"`
-	Name    string  `json:"name" bson:"name"`
-	Surname string  `json:"surname" bson:"surname"`
-	Balance float64 `json:"balance" bson:"balance"`
+	ID      string  `json:"id" bson:"_id,omitempty" db:"id"`
+	Name    string  `json:"name" bson:"name" db:"name"`
+	Surname string  `json:"surname" bson:"surname" db:"surname"`
+	Balance float64 `json:"balance" bson:"balance" db:"balance"`
 }

@@ -1,20 +1,19 @@
-﻿package routes
+package routes
 
 import (
 	"contoso/controllers"
-	"github.com/gin-gonic/gin"
+	"contoso/repository"
+	"github.com/gofiber/fiber/v2"
 )
 
-// RegisterRoutes registers API routes on the provided Gin router
-func RegisterRoutes(r *gin.Engine) {
-	api := r.Group("/api")
-	{
-		api.GET("/ping", controllers.Ping)
-		// Player CRUD routes
-		api.GET("/players", controllers.GetPlayers)
-		api.GET("/players/:id", controllers.GetPlayer)
-		api.POST("/players", controllers.CreatePlayer)
-		api.PUT("/players/:id", controllers.UpdatePlayer)
-		api.DELETE("/players/:id", controllers.DeletePlayer)
-	}
+// RegisterRoutesFiber registers API routes on the provided Fiber app
+func RegisterRoutesFiber(app *fiber.App, playerRepo repository.PlayerRepository) {
+	api := app.Group("/api")
+	api.Get("/ping", controllers.Ping)
+	// Player CRUD routes
+	api.Get("/players", controllers.GetPlayers(playerRepo))
+	api.Get("/players/:id", controllers.GetPlayer(playerRepo))
+	api.Post("/players", controllers.CreatePlayer(playerRepo))
+	api.Put("/players/:id", controllers.UpdatePlayer(playerRepo))
+	api.Delete("/players/:id", controllers.DeletePlayer(playerRepo))
 }

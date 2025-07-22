@@ -23,7 +23,7 @@ export const usePortalStore = defineStore('portal', () => {
   // Player CRUD
   async function fetchPlayers() {
     const res = await fetch('/api/players')
-    players.value = await res.json()
+    players.value = (await res.json()) || []
   }
 
   async function fetchPlayer(id) {

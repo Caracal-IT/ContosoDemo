@@ -1,121 +1,68 @@
-﻿package controllers
+package controllers
 
 import (
-	"context"
-	"contoso/dbsetup"
 	"contoso/models"
-	"net/http"
-	"time"
-
-	"github.com/gin-gonic/gin"
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
+	"contoso/repository"
+	"github.com/gofiber/fiber/v2"
 )
 
-var collection = dbsetup.GetMongoCollection()
-
-func CreatePlayer(c *gin.Context) {
-	var player models.Player
-	if err := c.ShouldBindJSON(&player); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-	player.ID = "" // Let MongoDB generate the ID
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-	res, err := collection.InsertOne(ctx, player)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-	player.ID = res.InsertedID.(primitive.ObjectID).Hex()
-	c.JSON(http.StatusCreated, player)
-}
-
-func GetPlayers(c *gin.Context) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-	cursor, err := collection.Find(ctx, bson.M{})
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-	defer cursor.Close(ctx)
-	var players []models.Player
-	for cursor.Next(ctx) {
+func CreatePlayer(repo repository.PlayerRepository) fiber.Handler {
+	return func(c *fiber.Ctx) error {
 		var player models.Player
-		if err := cursor.Decode(&player); err == nil {
-			// Convert ObjectID to hex string if needed
-			if oid, ok := cursor.Current.Lookup("_id").ObjectIDOK(); ok {
-				player.ID = oid.Hex()
-			}
-			players = append(players, player)
+		if err := c.BodyParser(&player); err != nil {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 		}
+		created, err := repo.CreatePlayer(&player)
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		}
+		return c.Status(fiber.StatusCreated).JSON(created)
 	}
-	c.JSON(http.StatusOK, players)
 }
 
-func GetPlayer(c *gin.Context) {
-	id := c.Param("id")
-	objID, err := primitive.ObjectIDFromHex(id)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
-		return
+func GetPlayers(repo repository.PlayerRepository) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		players, err := repo.GetPlayers()
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		}
+		return c.JSON(players)
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-	var player models.Player
-	if err := collection.FindOne(ctx, bson.M{"_id": objID}).Decode(&player); err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "player not found"})
-		return
-	}
-	player.ID = objID.Hex()
-	c.JSON(http.StatusOK, player)
 }
 
-func UpdatePlayer(c *gin.Context) {
-	id := c.Param("id")
-	objID, err := primitive.ObjectIDFromHex(id)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
-		return
+func GetPlayer(repo repository.PlayerRepository) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		id := c.Params("id")
+		player, err := repo.GetPlayer(id)
+		if err != nil {
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": err.Error()})
+		}
+		return c.JSON(player)
 	}
-	var input models.Player
-	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-	update := bson.M{
-		"$set": bson.M{
-			"name":    input.Name,
-			"surname": input.Surname,
-			"balance": input.Balance,
-		},
-	}
-	_, err = collection.UpdateOne(ctx, bson.M{"_id": objID}, update)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-	input.ID = id
-	c.JSON(http.StatusOK, input)
 }
 
-func DeletePlayer(c *gin.Context) {
-	id := c.Param("id")
-	objID, err := primitive.ObjectIDFromHex(id)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
-		return
+func UpdatePlayer(repo repository.PlayerRepository) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		id := c.Params("id")
+		var input models.Player
+		if err := c.BodyParser(&input); err != nil {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+		}
+		updated, err := repo.UpdatePlayer(id, &input)
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		}
+		return c.JSON(updated)
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-	_, err = collection.DeleteOne(ctx, bson.M{"_id": objID})
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
+}
+
+func DeletePlayer(repo repository.PlayerRepository) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		id := c.Params("id")
+		err := repo.DeletePlayer(id)
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		}
+		return c.SendStatus(fiber.StatusNoContent)
 	}
-	c.Status(http.StatusNoContent)
 }

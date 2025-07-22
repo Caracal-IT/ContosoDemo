@@ -3,9 +3,10 @@ package main
 import (
 	"contoso/dbsetup"
 	"contoso/elasticlog"
+	"contoso/repository"
 	"contoso/routes"
-	"github.com/gin-gonic/gin"
-	"net/http"
+	"github.com/gofiber/fiber/v2"
+	logger2 "github.com/gofiber/fiber/v2/middleware/logger"
 	"os"
 	"path/filepath"
 	"time"
@@ -20,17 +21,13 @@ type elasticInfoWriter struct {
 }
 
 func (w *elasticErrorWriter) Write(p []byte) (n int, err error) {
-	// Write to stderr as usual
 	n, err = os.Stderr.Write(p)
-	// Also log to elastic as error
 	w.logger.Error(string(p), nil)
 	return n, err
 }
 
 func (w *elasticInfoWriter) Write(p []byte) (n int, err error) {
-	// Write to stderr as usual
 	n, err = os.Stderr.Write(p)
-	// Also log to elastic as error
 	w.logger.Info(string(p), nil)
 	return n, err
 }
@@ -48,9 +45,6 @@ func startBackgroundService(logger *elasticlog.Logger) {
 }
 
 func main() {
-	// Ensure DB is initialized on start
-	dbsetup.GetMongoCollection()
-
 	// Setup logger
 	logLevel := elasticlog.ParseLogLevel(os.Getenv("LOG_LEVEL"))
 	logger := elasticlog.NewLogger(
@@ -67,23 +61,46 @@ func main() {
 		"event": "startup",
 	})
 
-	// Gin logger middleware
-	gin.DefaultWriter = &elasticInfoWriter{logger: logger}
-	gin.DefaultErrorWriter = &elasticErrorWriter{logger: logger}
-	gin.SetMode(gin.ReleaseMode)
+	// Choose repository based on environment variable
+	var playerRepo repository.PlayerRepository
+	dbType := os.Getenv("DB_TYPE")
+	if dbType == "postgres" {
+		playerRepo = repository.NewPostgresPlayerRepository(dbsetup.GetPostgresDB())
+		logger.Info("Using Postgres repository", nil)
+	} else {
+		playerRepo = repository.NewMongoPlayerRepository(dbsetup.GetMongoCollection())
+		logger.Info("Using MongoDB repository", nil)
+	}
 
-	r := gin.New()
-	r.Use(func(c *gin.Context) {
+	app := fiber.New(fiber.Config{
+		ErrorHandler: func(c *fiber.Ctx, err error) error {
+			logger.Error("Fiber error", map[string]interface{}{
+				"error":  err.Error(),
+				"path":   c.Path(),
+				"method": c.Method(),
+			})
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		},
+	})
+
+	// Add Fiber's logger middleware for endpoint and info logging, logging to both console and elastic
+	app.Use(logger2.New(logger2.Config{
+		Format:     "[${time}] ${status} - ${latency} ${method} ${path}\n",
+		TimeFormat: time.RFC3339,
+		Output:     &elasticInfoWriter{logger: logger}, // log to both console and elastic
+	}))
+
+	app.Use(func(c *fiber.Ctx) error {
 		start := time.Now()
-		c.Next()
+		err := c.Next()
 		latency := time.Since(start)
-		status := c.Writer.Status()
+		status := c.Response().StatusCode()
 		entry := map[string]interface{}{
-			"method":  c.Request.Method,
-			"path":    c.Request.URL.Path,
+			"method":  c.Method(),
+			"path":    c.Path(),
 			"status":  status,
 			"latency": latency.String(),
-			"client":  c.ClientIP(),
+			"client":  c.IP(),
 		}
 		switch {
 		case status >= 500:
@@ -93,25 +110,25 @@ func main() {
 		default:
 			logger.Info("HTTP request", entry)
 		}
+		return err
 	})
 
-	// API routes
-	routes.RegisterRoutes(r)
+	// Pass the repository to the routes/controllers
+	routes.RegisterRoutesFiber(app, playerRepo)
 
 	// Serve static files for frontend
 	publicDir := "./public"
-	r.Static("/assets", filepath.Join(publicDir, "assets"))
+	app.Static("/assets", filepath.Join(publicDir, "assets"))
 
 	// Serve index.html for non-API routes (SPA fallback)
-	r.NoRoute(func(c *gin.Context) {
-		if len(c.Request.URL.Path) >= 4 && c.Request.URL.Path[:4] == "/api" {
-			c.JSON(http.StatusNotFound, gin.H{"error": "Not found"})
-			return
+	app.Use(func(c *fiber.Ctx) error {
+		if len(c.Path()) >= 4 && c.Path()[:4] == "/api" {
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "Not found"})
 		}
-		c.File(filepath.Join(publicDir, "index.html"))
+		return c.SendFile(filepath.Join(publicDir, "index.html"))
 	})
 
-	err := r.Run(":8080")
+	err := app.Listen(":8080")
 	if err != nil {
 		logger.Error("Failed to start server", map[string]interface{}{"error": err.Error()})
 	}

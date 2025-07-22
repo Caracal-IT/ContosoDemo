@@ -1,10 +1,9 @@
-﻿package controllers
+package controllers
 
 import (
-	"github.com/gin-gonic/gin"
-	"net/http"
+	"github.com/gofiber/fiber/v2"
 )
 
-func Ping(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{"message": "pong"})
+func Ping(c *fiber.Ctx) error {
+	return c.JSON(fiber.Map{"message": "pong"})
 }
