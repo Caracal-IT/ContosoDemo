@@ -56,7 +56,7 @@ func GetPostgresDB() *sql.DB {
 		if err != nil {
 			panic("failed to connect to Postgres: " + err.Error())
 		}
-		// Migration: create the players table if it doesn't exist
+		// Migration: create the player table if it doesn't exist
 		_, err = pgDB.Exec(`
 			CREATE TABLE IF NOT EXISTS players (
 				id SERIAL PRIMARY KEY,
