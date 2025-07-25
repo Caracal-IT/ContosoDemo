@@ -10,7 +10,7 @@ import (
 // @Tags health
 // @Produce json
 // @Success 200 {object} map[string]string
-// @Router /ping [get]
+// @Router /api/ping [get]
 func Ping(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"message": "pong"})
 }

@@ -3,8 +3,10 @@
     "info": {
         "contact": {}
     },
+    "basePath": "/",
+    "host": "localhost:8080",
     "paths": {
-        "/ping": {
+        "/api/ping": {
             "get": {
                 "description": "Returns pong if the server is running",
                 "produces": [
@@ -27,7 +29,7 @@
                 }
             }
         },
-        "/players": {
+        "/api/players": {
             "get": {
                 "description": "Get a list of all players",
                 "produces": [
@@ -109,7 +111,7 @@
                 }
             }
         },
-        "/players/{id}": {
+        "/api/players/{id}": {
             "get": {
                 "description": "Get details of a player by ID",
                 "produces": [

@@ -16,7 +16,7 @@ import (
 // @Success 201 {object} models.Player
 // @Failure 400 {object} map[string]string
 // @Failure 500 {object} map[string]string
-// @Router /players [post]
+// @Router /api/players [post]
 func CreatePlayer(repo repository.PlayerRepository) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		var player models.Player
@@ -38,7 +38,7 @@ func CreatePlayer(repo repository.PlayerRepository) fiber.Handler {
 // @Produce json
 // @Success 200 {array} models.Player
 // @Failure 500 {object} map[string]string
-// @Router /players [get]
+// @Router /api/players [get]
 func GetPlayers(repo repository.PlayerRepository) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		players, err := repo.GetPlayers()
@@ -57,7 +57,7 @@ func GetPlayers(repo repository.PlayerRepository) fiber.Handler {
 // @Param id path string true "Player ID"
 // @Success 200 {object} models.Player
 // @Failure 404 {object} map[string]string
-// @Router /players/{id} [get]
+// @Router /api/players/{id} [get]
 func GetPlayer(repo repository.PlayerRepository) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		id := c.Params("id")
@@ -80,7 +80,7 @@ func GetPlayer(repo repository.PlayerRepository) fiber.Handler {
 // @Success 200 {object} models.Player
 // @Failure 400 {object} map[string]string
 // @Failure 500 {object} map[string]string
-// @Router /players/{id} [put]
+// @Router /api/players/{id} [put]
 func UpdatePlayer(repo repository.PlayerRepository) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		id := c.Params("id")
@@ -103,7 +103,7 @@ func UpdatePlayer(repo repository.PlayerRepository) fiber.Handler {
 // @Param id path string true "Player ID"
 // @Success 204 {string} string "No Content"
 // @Failure 500 {object} map[string]string
-// @Router /players/{id} [delete]
+// @Router /api/players/{id} [delete]
 func DeletePlayer(repo repository.PlayerRepository) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		id := c.Params("id")

@@ -15,7 +15,7 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/ping": {
+        "/api/ping": {
             "get": {
                 "description": "Returns pong if the server is running",
                 "produces": [
@@ -38,7 +38,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/players": {
+        "/api/players": {
             "get": {
                 "description": "Get a list of all players",
                 "produces": [
@@ -120,7 +120,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/players/{id}": {
+        "/api/players/{id}": {
             "get": {
                 "description": "Get details of a player by ID",
                 "produces": [
@@ -273,7 +273,7 @@ const docTemplate = `{
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
 	Version:          "",
-	Host:             "",
+	Host:             "localhost:8080",
 	BasePath:         "",
 	Schemes:          []string{},
 	Title:            "",

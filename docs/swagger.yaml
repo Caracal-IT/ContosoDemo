@@ -13,7 +13,7 @@ definitions:
 info:
   contact: {}
 paths:
-  /ping:
+  /api/ping:
     get:
       description: Returns pong if the server is running
       produces:
@@ -28,7 +28,7 @@ paths:
       summary: Health check
       tags:
       - health
-  /players:
+  /api/players:
     get:
       description: Get a list of all players
       produces:
@@ -82,7 +82,7 @@ paths:
       summary: Create a new player
       tags:
       - players
-  /players/{id}:
+  /api/players/{id}:
     delete:
       description: Delete a player by ID
       parameters:
